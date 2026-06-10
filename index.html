@@ -561,6 +561,12 @@ function showScreen(id) {
   window.scrollTo(0, 0);
 }
 
+function showHome() {
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('nav-home').classList.add('active');
+  renderHome(); showScreen('screen-home');
+}
+
 function switchTab(tab) {
   document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
   document.getElementById('nav-' + tab).classList.add('active');
@@ -793,17 +799,42 @@ Réponds UNIQUEMENT en JSON :
     max_tokens: 6000
   });
   const data = await response.json();
+  if (!data.content || !data.content[0]) throw new Error('Réponse API vide : ' + JSON.stringify(data));
   let text = data.content[0].text.trim();
   if (text.startsWith('```')) text = text.replace(/```json?\n?/g,'').replace(/```/g,'').trim();
-  // Extract first complete JSON array or object even if model adds trailing text
-  const arrMatch = text.match(/(\[\s*\{[\s\S]*\}\s*\])/);
-  const objMatch = text.match(/(\{[\s\S]*\})/);
-  const jsonStr = arrMatch ? arrMatch[1] : (objMatch ? objMatch[1] : text);
+  text = text.trim();
+
+  // Try direct parse first
   try {
-    return JSON.parse(jsonStr);
+    const direct = JSON.parse(text);
+    if (direct !== null && direct !== undefined) return direct;
+  } catch(e) {}
+
+  // Extract first complete JSON array [...] or object {...}
+  // For objects, find the outermost { } 
+  let jsonStr = text;
+  const firstBrace  = text.indexOf('{');
+  const firstBracket = text.indexOf('[');
+  if (firstBracket >= 0 && (firstBracket < firstBrace || firstBrace < 0)) {
+    // Array
+    const last = text.lastIndexOf(']');
+    if (last > firstBracket) jsonStr = text.substring(firstBracket, last + 1);
+  } else if (firstBrace >= 0) {
+    // Object — find matching closing brace
+    let depth = 0, end = -1;
+    for (let i = firstBrace; i < text.length; i++) {
+      if (text[i] === '{') depth++;
+      else if (text[i] === '}') { depth--; if (depth === 0) { end = i; break; } }
+    }
+    if (end > firstBrace) jsonStr = text.substring(firstBrace, end + 1);
+  }
+
+  try {
+    const parsed = JSON.parse(jsonStr);
+    return parsed;
   } catch(parseErr) {
     // Last resort: truncate at last complete object
-    const lastClose = Math.max(jsonStr.lastIndexOf('}]'), jsonStr.lastIndexOf(']}'));
+    const lastClose = Math.max(jsonStr.lastIndexOf('}]'), jsonStr.lastIndexOf(']}'), jsonStr.lastIndexOf('}}'));
     if (lastClose > 0) {
       try { return JSON.parse(jsonStr.substring(0, lastClose + 2)); } catch(e2) {}
     }
@@ -917,6 +948,10 @@ function reviewHardCards() {
 
 // ── FICHE DE COURS ──
 function renderFiche(data) {
+  if (!data || !data.sections) {
+    document.getElementById('fiche-content').innerHTML = '<div class="loading-box"><p style="color:var(--red)">Données invalides reçues. <button class="action-btn secondary" style="margin-top:8px" onclick="regenerateRevision('fiche')">↻ Réessayer</button></p></div>';
+    return;
+  }
   let html = '<div class="fiche-content">';
   data.sections.forEach(sec => {
     html += `<h3>${escHtml(sec.title)}</h3>`;
@@ -937,6 +972,10 @@ function renderFiche(data) {
 
 // ── LECTURE GUIDÉE ──
 function renderLecture(data) {
+  if (!data || !data.sections) {
+    document.getElementById('lecture-content').innerHTML = '<div class="loading-box"><p style="color:var(--red)">Données invalides reçues. <button class="action-btn secondary" style="margin-top:8px" onclick="regenerateRevision('lecture')">↻ Réessayer</button></p></div>';
+    return;
+  }
   let html = '';
   if (data.intro) {
     html += `<div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;margin-bottom:14px;font-size:13px;color:var(--text2)">${escHtml(data.intro)}</div>`;
@@ -1077,6 +1116,7 @@ async function generateQuestions() {
     throw new Error(msg);
   }
   const data = await response.json();
+  if (!data.content || !data.content[0]) throw new Error('Réponse API vide : ' + JSON.stringify(data));
   let text = data.content[0].text.trim();
   if (text.startsWith('```')) text = text.replace(/```json?\n?/g,'').replace(/```/g,'').trim();
   const arrM = text.match(/(\[\s*\{[\s\S]*\}\s*\])/);
@@ -1176,17 +1216,42 @@ async function evaluateOpenAnswer(q, userAnswer) {
     max_tokens: 600
   });
   const data = await response.json();
+  if (!data.content || !data.content[0]) throw new Error('Réponse API vide : ' + JSON.stringify(data));
   let text = data.content[0].text.trim();
   if (text.startsWith('```')) text = text.replace(/```json?\n?/g,'').replace(/```/g,'').trim();
-  // Extract first complete JSON array or object even if model adds trailing text
-  const arrMatch = text.match(/(\[\s*\{[\s\S]*\}\s*\])/);
-  const objMatch = text.match(/(\{[\s\S]*\})/);
-  const jsonStr = arrMatch ? arrMatch[1] : (objMatch ? objMatch[1] : text);
+  text = text.trim();
+
+  // Try direct parse first
   try {
-    return JSON.parse(jsonStr);
+    const direct = JSON.parse(text);
+    if (direct !== null && direct !== undefined) return direct;
+  } catch(e) {}
+
+  // Extract first complete JSON array [...] or object {...}
+  // For objects, find the outermost { } 
+  let jsonStr = text;
+  const firstBrace  = text.indexOf('{');
+  const firstBracket = text.indexOf('[');
+  if (firstBracket >= 0 && (firstBracket < firstBrace || firstBrace < 0)) {
+    // Array
+    const last = text.lastIndexOf(']');
+    if (last > firstBracket) jsonStr = text.substring(firstBracket, last + 1);
+  } else if (firstBrace >= 0) {
+    // Object — find matching closing brace
+    let depth = 0, end = -1;
+    for (let i = firstBrace; i < text.length; i++) {
+      if (text[i] === '{') depth++;
+      else if (text[i] === '}') { depth--; if (depth === 0) { end = i; break; } }
+    }
+    if (end > firstBrace) jsonStr = text.substring(firstBrace, end + 1);
+  }
+
+  try {
+    const parsed = JSON.parse(jsonStr);
+    return parsed;
   } catch(parseErr) {
     // Last resort: truncate at last complete object
-    const lastClose = Math.max(jsonStr.lastIndexOf('}]'), jsonStr.lastIndexOf(']}'));
+    const lastClose = Math.max(jsonStr.lastIndexOf('}]'), jsonStr.lastIndexOf(']}'), jsonStr.lastIndexOf('}}'));
     if (lastClose > 0) {
       try { return JSON.parse(jsonStr.substring(0, lastClose + 2)); } catch(e2) {}
     }
@@ -1430,6 +1495,7 @@ JSON (tableau de \${batchSize} objets) :
 
   const response = await claudeAPIWithFallback({ system: '', prompt, max_tokens: 5000 });
   const data = await response.json();
+  if (!data.content || !data.content[0]) throw new Error('Réponse API vide : ' + JSON.stringify(data));
   let text = data.content[0].text.trim();
   if (text.startsWith('```')) text = text.replace(/```json?\n?/g,'').replace(/```/g,'').trim();
   const arrM = text.match(/(\[\s*\{[\s\S]*\}\s*\])/);
