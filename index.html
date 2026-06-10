@@ -1082,7 +1082,7 @@ async function startQuiz() {
   try {
     const questions = await generateQuestionsWithOfflineFallback();
     state.questions = questions; state.currentQ = 0; state.answers = [];
-    persistOfflineQuizCache(ch.id, state.mode, questions);
+    persistOfflineQuizCache(state.currentChapter.id, state.mode, questions);
     renderQuestion();
   } catch(e) {
     content.innerHTML = `<div class="loading-box">
