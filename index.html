@@ -1311,6 +1311,7 @@ async function claudeAPIWithFallback({ system, prompt, max_tokens }) {
 async function _fetchClaude({ system, prompt, max_tokens, withKey, model }) {
   const headers = {
     'Content-Type': 'application/json',
+    'anthropic-version': '2023-06-01',
     'anthropic-dangerous-direct-browser-access': 'true'
   };
   const apiKey = CONFIG.apiKey;
