@@ -1573,7 +1573,7 @@ async function prepareOffline() {
             if (log) log.innerHTML = `<span style="color:var(--text2)">
               <strong>${ch.title}</strong> — ${m.label}<br>
               <span style="font-family:monospace">${pool.length}/${target}</span>
-              <span style="color:var(--text3)"> batch \${attempts}</span>
+              <span style="color:var(--text3)"> batch ${attempts}</span>
             </span>`;
 
             updateOfflineProgress(ch, m, pool.length, target);
