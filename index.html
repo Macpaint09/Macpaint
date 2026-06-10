@@ -1309,7 +1309,10 @@ async function claudeAPIWithFallback({ system, prompt, max_tokens }) {
 }
 
 async function _fetchClaude({ system, prompt, max_tokens, withKey, model }) {
-  const headers = { 'Content-Type': 'application/json' };
+  const headers = {
+    'Content-Type': 'application/json',
+    'anthropic-dangerous-direct-browser-access': 'true'
+  };
   const apiKey = CONFIG.apiKey;
   if (withKey && apiKey) headers['x-api-key'] = apiKey;
 
@@ -1476,7 +1479,7 @@ function getOfflineStatus() {
     if (rev.flashcards && rev.fiche && rev.lecture) revReady++;
     const qcm = getOfflineQuizPool(ch.id, 'qcm');
     const open = getOfflineQuizPool(ch.id, 'open');
-    if (qcm.length >= 10 && open.length >= 5) quizReady++;
+    if (qcm.length >= 200 && open.length >= 100) quizReady++;
   });
   return { revReady, quizReady, total: chapters.length };
 }
@@ -1497,7 +1500,7 @@ function updateOfflineStatus() {
   if (!el) return;
   const pct = Math.round(((s.revReady + s.quizReady) / (s.total * 2)) * 100);
   el.innerHTML = `<span style="color:${pct===100?'var(--green)':pct>0?'var(--amber)':'var(--text3)'}">
-    ${pct===100?'✓ Prêt offline — 5 500 cartes & questions disponibles':'◑ Offline ' + pct + '% · ' + (s.revReady+s.quizReady) + '/' + (s.total*2) + ' chapitres'}
+    ${pct===100?'✓ Prêt offline — 5 500 cartes & questions disponibles':'◑ Offline ' + pct + '% · ' + (s.revReady+s.quizReady) + '/' + (s.total*2) + ' étapes (' + s.total + ' chapitres)'}
   </span>`;
   const btn = document.getElementById('offline-prep-btn');
   if (btn) btn.textContent = pct === 100 ? '✓ Tout est en cache' : (pct > 0 ? 'Continuer (reprend où ça s\'était arrêté)' : 'Préparer le mode offline');
@@ -1568,8 +1571,8 @@ async function prepareOffline() {
             const batchSize = Math.min(batch, remaining + 4); // slight overgen
 
             if (log) log.innerHTML = `<span style="color:var(--text2)">
-              <strong>\${ch.title}</strong> — \${m.label}<br>
-              <span style="font-family:monospace">\${pool.length}/\${target}</span>
+              <strong>${ch.title}</strong> — ${m.label}<br>
+              <span style="font-family:monospace">${pool.length}/${target}</span>
               <span style="color:var(--text3)"> batch \${attempts}</span>
             </span>`;
 
