@@ -949,7 +949,7 @@ function reviewHardCards() {
 // ── FICHE DE COURS ──
 function renderFiche(data) {
   if (!data || !data.sections) {
-    document.getElementById('fiche-content').innerHTML = '<div class="loading-box"><p style="color:var(--red)">Données invalides reçues. <button class="action-btn secondary" style="margin-top:8px" onclick="regenerateRevision('fiche')">↻ Réessayer</button></p></div>';
+    document.getElementById('fiche-content').innerHTML = `<div class="loading-box"><p style="color:var(--red)">Données invalides. <button class="action-btn secondary" style="margin-top:8px" onclick="regenerateRevision('fiche')">&#8635; Réessayer</button></p></div>`;
     return;
   }
   let html = '<div class="fiche-content">';
@@ -973,7 +973,7 @@ function renderFiche(data) {
 // ── LECTURE GUIDÉE ──
 function renderLecture(data) {
   if (!data || !data.sections) {
-    document.getElementById('lecture-content').innerHTML = '<div class="loading-box"><p style="color:var(--red)">Données invalides reçues. <button class="action-btn secondary" style="margin-top:8px" onclick="regenerateRevision('lecture')">↻ Réessayer</button></p></div>';
+    document.getElementById('lecture-content').innerHTML = `<div class="loading-box"><p style="color:var(--red)">Données invalides. <button class="action-btn secondary" style="margin-top:8px" onclick="regenerateRevision('lecture')">&#8635; Réessayer</button></p></div>`;
     return;
   }
   let html = '';
