@@ -583,7 +583,6 @@ function showQuizList()     { renderQuizList(); showScreen('screen-quiz-list'); 
 // ══════════════════════════════════════════════════
 function renderHome() {
   const st = state.stats;
-  setTimeout(updateOfflineStatus, 50);
   document.getElementById('stat-total-q').textContent = st.totalQ;
   document.getElementById('stat-score').textContent = st.totalQ > 0 ? Math.round(st.correct / st.totalQ * 100) + '%' : '—';
   document.getElementById('stat-streak').textContent = st.bestStreak;
@@ -591,6 +590,7 @@ function renderHome() {
   document.getElementById('global-bar').style.width = pct + '%';
   document.getElementById('global-score-text').textContent = st.correct + ' pts';
 
+  updateOfflineStatus();
   const list = document.getElementById('chapters-list');
   list.innerHTML = '';
   CHAPTERS_DATA.forEach(ch => {
@@ -1570,7 +1570,7 @@ function updateOfflineStatus() {
     ${pct===100?'✓ Prêt offline — 5 500 cartes & questions disponibles':'◑ Offline ' + pct + '% · ' + (s.revReady+s.quizReady) + '/' + (s.total*2) + ' étapes (' + s.total + ' chapitres)'}
   </span>`;
   const btn = document.getElementById('offline-prep-btn');
-  if (btn) btn.textContent = pct === 100 ? '✓ Tout est en cache' : (pct > 0 ? 'Continuer (reprend où ça s\'était arrêté)' : 'Préparer le mode offline');
+  if (btn) btn.textContent = pct === 100 ? "✓ Tout est en cache" : (pct > 0 ? "Continuer la préparation offline" : "Préparer le mode offline");
 
   // Update global progress bar
   const fill = document.getElementById('offline-global-fill');
